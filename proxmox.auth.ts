@@ -76,13 +76,19 @@ export class ProxmoxAuth {
         Cookie: `PVEAuthCookie=${this.ticket}`,
         CSRFPreventionToken: this.CSRFToken,
       },
-      body: JSON.stringify(data),
+      body: new URLSearchParams({ ...data }),
     })
 
-    console.log('post result', result)
+    console.log(result)
+
+    if (!result.ok) {
+      console.log(await result.json())
+    }
 
     if (result.ok) {
-      return (await result.json()) as T
+      const data = await result.json()
+
+      return data as T
     }
     return undefined
   }
@@ -95,10 +101,9 @@ export class ProxmoxAuth {
         CSRFPreventionToken: this.CSRFToken,
       },
     })
-    console.log('get result', result)
     if (result.ok) {
       const data = (await result.json()) as T
-      console.log('get obj', data)
+
       return data
     }
 
@@ -118,8 +123,6 @@ class ProxmoxApiAuth {
       body: JSON.stringify(data),
     })
 
-    console.log('post result', result)
-
     if (result.ok) {
       return (await result.json()) as T
     }
@@ -133,10 +136,10 @@ class ProxmoxApiAuth {
         Authorization: `PVEAPIToken=${this.tokenId}=${this.secret}`,
       },
     })
-    console.log('get result', result)
+
     if (result.ok) {
       const data = (await result.json()) as T
-      console.log('get obj', data)
+
       return data
     }
 
