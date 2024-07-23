@@ -1,39 +1,32 @@
 import { BaseManager } from './baseManager'
-import { host } from './config'
-import { authorized, authorizedUser } from './proxmox.auth'
+import { authorizedUser } from './proxmox.auth'
 import type { NodeData, Nodes, Vms } from './types'
 
 export class NodeManager extends BaseManager {
   private readonly nodesEndpoint: string
-  constructor(private readonly mode: 'user' | 'apiKey') {
+  constructor() {
     super()
     this.nodesEndpoint = this.getEndpoint('nodes')
   }
 
   getNodes = async () => {
-    const result =
-      this.mode === 'apiKey'
-        ? await authorized.Get<Nodes>(this.nodesEndpoint)
-        : await authorizedUser.Get<Nodes>(this.nodesEndpoint)
+    const result = await authorizedUser.Get<Nodes>(this.nodesEndpoint)
 
     return result
   }
   getNodesIdName = (nodes: Nodes) => nodes.data.map((x) => ({ id: x.id, name: x.node }))
 
-  getNode = async (nodeName: string) => {
-    const nodeEndpoint = this.combineEndpoint(this.nodesEndpoint, `${nodeName}`)
-    const result =
-      this.mode === 'apiKey'
-        ? await authorized.Get<NodeData>(nodeEndpoint)
-        : await authorizedUser.Get<NodeData>(nodeEndpoint)
+  getNode = async (nodeName: string) => this.get<NodeData>(nodeName)
 
-    return result
-  }
+  getVmsForNode = async (nodeName: string) => this.get<Vms>(nodeName, 'qemu')
 
-  getVmsForNode = async (nodeName: string) => {
-    const nodeEndpoint = this.combineEndpoint(this.nodesEndpoint, `${nodeName}/qemu`)
-    const result =
-      this.mode === 'apiKey' ? await authorized.Get<Vms>(nodeEndpoint) : await authorizedUser.Get<Vms>(nodeEndpoint)
+  private get = async <T>(nodeName?: string, postfix?: string) => {
+    if (!nodeName) {
+      return await authorizedUser.Get<T>(this.nodesEndpoint)
+    }
+    const nodeEndpoint = this.combineEndpoint(this.nodesEndpoint, postfix ? `${nodeName}/${postfix}` : `${nodeName}`)
+
+    const result = await authorizedUser.Get<T>(nodeEndpoint)
 
     return result
   }
