@@ -149,4 +149,7 @@ export class ProxmoxAuth {
   }
 }
 
-export const authorizedUser = await new ProxmoxAuth(process.env.USR!, process.env.PASSWORD!).authorizeUser()
+export const authorizedUser = await new ProxmoxAuth(
+  process.env.USR!,
+  process.env.PASSWORD!,
+).authorizeUser()
