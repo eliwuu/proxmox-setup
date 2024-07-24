@@ -130,13 +130,14 @@ export class ProxmoxAuth {
     return undefined
   }
 
-  Delete = async (endpoint: string) => {
+  Delete = async (endpoint: string, data: object) => {
     const result = await fetch(endpoint, {
       method: 'DELETE',
       headers: {
         Cookie: `PVEAuthCookie=${this.ticket}`,
         CSRFPreventionToken: this.CSRFToken,
       },
+      body: new URLSearchParams({ ...data }),
     })
 
     if (result.ok) {

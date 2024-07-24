@@ -3,6 +3,18 @@ import { NodeManager } from '../proxmox.node'
 import { authorizedUser } from '../proxmox.auth'
 import type { NodeData } from '../types'
 import { VmManager } from '../vm.manager'
+import db from '../database/db.connection'
+
+const dataHelper = async (context: string, data: object | string) => {
+  const stringified =
+    typeof data === 'string' ? data : JSON.stringify(data, null, 2)
+
+  const date = new Date()
+  const formatedDate = `${date.getMonth()}-${date.getDay()}-${date.getHours()}-${date.getMinutes()}`
+  const filename = `${context}.${formatedDate}.json`
+
+  await Bun.write(filename, stringified)
+}
 
 const Cache = {
   nodes: [] as NodeData[],
@@ -30,7 +42,9 @@ describe('base tests', async () => {
     Cache.namedNodes = nodeManager.getNodesIdName(actual!)
   })
   test('main node exist', async () => {
-    const mainNode = Cache.namedNodes.find((x) => x.name === process.env.MAIN_NODE_NAME!)
+    const mainNode = Cache.namedNodes.find(
+      (x) => x.name === process.env.MAIN_NODE_NAME!,
+    )
 
     expect(mainNode!.name).toBe(process.env.MAIN_NODE_NAME!)
     Cache.mainNode = mainNode!
@@ -40,11 +54,21 @@ describe('base tests', async () => {
     const vms = await Cache.nodeManager!.getVmsForNode(Cache.mainNode!.name)
 
     expect(vms?.data.length).toBeGreaterThan(0)
+    await dataHelper('vms-list', vms!.data)
   })
 })
 
 describe('vmManager test', async () => {
   test('get vms names', async () => {
     const vmManager = new VmManager(Cache.mainNode!.name)
+  })
+})
+
+describe('db init test', async () => {
+  test('init', async () => {
+    const seedMainNode = await db
+      .insertInto('main_node')
+      .values({ id: 0, name: process.env.MAIN_NODE_NAME! })
+      .execute()
   })
 })

@@ -1,7 +1,7 @@
 import { NodeManager } from './proxmox.node'
 import { VmManager } from './vm.manager'
 
-const nodeManager = new NodeManager('user')
+const nodeManager = new NodeManager()
 
 const nodes = await nodeManager.getNodes()
 
