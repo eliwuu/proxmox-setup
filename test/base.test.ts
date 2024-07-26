@@ -63,12 +63,3 @@ describe('vmManager test', async () => {
     const vmManager = new VmManager(Cache.mainNode!.name)
   })
 })
-
-describe('db init test', async () => {
-  test('init', async () => {
-    const seedMainNode = await db
-      .insertInto('main_node')
-      .values({ id: 0, name: process.env.MAIN_NODE_NAME! })
-      .execute()
-  })
-})
